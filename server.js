@@ -28,7 +28,7 @@ const checkAuthenticated = (req, res, next) => {
 
 const checkNotAuthenticated = (req, res, next) => {
     if(req.isAuthenticated()) {
-        return res.redirect('/');
+        return res.redirect('/home');
     }
     next();
 }
@@ -46,8 +46,13 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(methodOverride('_method'));
+app.use(express.static(__dirname + '/style'));
 
-app.get('/', checkAuthenticated, (req, res) => {
+app.get('/', (req, res) => {
+    res.render('main.ejs');
+});
+
+app.get('/home', checkAuthenticated, (req, res) => {
     res.render('index.ejs', { name: req.user.name });
 });
 
@@ -56,7 +61,7 @@ app.get('/login', checkNotAuthenticated, (req, res) => {
 });
 
 app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
-    successRedirect: '/',
+    successRedirect: '/home',
     failureRedirect: '/login',
     failureFlash: true
 }));
@@ -83,7 +88,7 @@ app.post('/register', async (req, res) => {
 
 app.delete('/logout', (req, res) => {
     req.logOut();
-    res.redirect('login');
+    res.redirect('/');
 })
 
-app.listen(9000);
+app.listen(3000);
