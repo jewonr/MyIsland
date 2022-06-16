@@ -6,17 +6,32 @@ const express = require('express');
 const app = express();
 const bcrypt = require('bcrypt');
 const passport = require('passport');
+const multer = require('multer');
+const path = require('path');
 const flash = require('express-flash');
 const session = require('express-session');
 const methodOverride = require('method-override');
+const mongoose = require('mongoose');
+const LocalStrategy = require('passport-local').Strategy;
+const axios = require('axios').default;
 
-const initializePassport = require('./passport-config');
-// const { initialize, session } = require('passport/lib');
-initializePassport(
-    passport, 
-    email => users.find(user => user.email === email),
-    id => users.find(user => user.id === id)
-);
+const User = require('./user');
+const Content = require('./content');
+
+const upload = multer({
+    storage: multer.diskStorage({
+        destination(req, file, done) {
+            done(null, 'style/uploads/');
+        },
+        filename(req, file, cb) {
+            const ext = path.extname(file.originalname);	
+            const timestamp = new Date().getTime().valueOf();	
+            const filename = path.basename(file.originalname, ext) + timestamp + ext;
+            cb(null, filename);
+            // cb(null, file.originalname);
+        }
+    }),
+})
 
 const checkAuthenticated = (req, res, next) => {
     if(req.isAuthenticated()) {
@@ -33,8 +48,6 @@ const checkNotAuthenticated = (req, res, next) => {
     next();
 }
 
-const users = [];
-
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({ extended: false }));
 app.use(flash());
@@ -45,15 +58,60 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+passport.serializeUser((user, done) => {
+    done(null, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+    User.findOne({ id: id }, (err, user) => {
+        done(err, user);
+    });
+});
+
+passport.use(new LocalStrategy({
+    usernameField: 'email', 
+    passwordField: 'password'}, 
+    (email, password, done) => {
+    User.findOne({ email: email }, (err, user) => {
+        if (err) return done(err); 
+        if(!user) return done(null, false, { message: 'Incorrect username' }); 
+        
+        bcrypt.compare(password, user.password, (err, res) => {
+            if (err) return done(err);
+            if(res === false) return done(null, false, {message: 'Incorrect password'});
+
+            return done(null, user);
+        });
+    });
+}));
+
 app.use(methodOverride('_method'));
 app.use(express.static(__dirname + '/style'));
+app.use(express.json());
+
+mongoose.connect(process.env.DATABASE_URL, { useNewUrlParser: true });
+const db = mongoose.connection;
+db.on('error', error => console.error(error));
+db.once('open', () => console.error('Connected to Mongoose'));
 
 app.get('/', (req, res) => {
     res.render('main.ejs');
 });
 
-app.get('/home', checkAuthenticated, (req, res) => {
-    res.render('index.ejs', { name: req.user.name });
+app.get('/home', checkAuthenticated, async (req, res) => {
+    const items = [];
+    const contents = Content.find({ creater: req.user.id });
+    (await contents).forEach(content => {
+        items.push(content);
+    });
+
+    console.log(items.length);
+
+    res.render('index.ejs', { 
+        name: req.user.name,
+        contents: items
+    });
 });
 
 app.get('/login', checkNotAuthenticated, (req, res) => {
@@ -62,7 +120,7 @@ app.get('/login', checkNotAuthenticated, (req, res) => {
 
 app.post('/login', checkNotAuthenticated, passport.authenticate('local', {
     successRedirect: '/home',
-    failureRedirect: '/login',
+    failureRedirect: '/login?error=true',
     failureFlash: true
 }));
 
@@ -73,22 +131,88 @@ app.get('/register', checkNotAuthenticated, (req, res) => {
 app.post('/register', async (req, res) => {
     try {
         const hasedPassword = await bcrypt.hash(req.body.password, 10)
-        users.push({
+        const user = new User({
             id: Date.now().toString(),
             name: req.body.name,
             email: req.body.email,
-            password: hasedPassword
-        })
+            password: hasedPassword,
+        });
+        const newUser = await user.save();
+ 
         res.redirect('/login');
     } catch {
-        res.redirect('/register')
+        res.redirect('/register', {
+            errorMessage: 'Error creating User'
+        });
     }
-    console.log(users)
 });
 
 app.delete('/logout', (req, res) => {
     req.logOut();
     res.redirect('/');
+});
+
+app.get('/create', checkAuthenticated, (req, res) => {
+    res.render('create.ejs');
+});
+
+app.post('/create', upload.single('img'), async (req, res) => {
+    let imgName = null;
+
+    if(req?.file) {
+        imgName = req.file.filename;
+    } 
+
+    console.log(req.file);
+
+    // if(!req.body.title && !req.body.text && !req.body.imgName) {
+    //     res.redirect('/create');
+    // }
+
+    const content = new Content({
+        title: req.body.title,
+        text: req.body.text,
+        imgName: imgName,
+        boxSize: req.body.size,
+        creater: req.user.id
+    });
+    const newContent = await content.save();
+    res.redirect('/home');
+});
+
+app.post('/edit', checkAuthenticated, async (req, res) => {
+    const contentId = req.body.contentId;
+    const content = await Content.findOne({ _id: contentId });
+
+    res.render('edit.ejs', { content: content });
+});
+
+app.post('/update', upload.single('img'), async (req, res) => {
+    let imgName = null;
+
+    if(req?.file) {
+        imgName = req.file.filename;
+    } 
+
+    await Content.updateOne({ _id: req.body.contentId }, {
+        title: req.body.title,
+        text: req.body.text,
+        imgName: imgName,
+        boxSize: req.body.size,
+        creater: req.user.id
+    });
+
+    res.redirect('/home');
+});
+
+app.post('/delete', async (req, res) => {
+    (await req.body.contentsId).forEach(id => {
+        Content.deleteOne({ _id: id });
+    });
+
+    res.send();
 })
 
-app.listen(3000);
+app.listen(3000, () => {
+    console.log("Listening on port 3000");
+});

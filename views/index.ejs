@@ -1,4 +1,168 @@
-<h1>Hi <%= name %></h1>
-<form action="/logout?_method=DELETE" method="POST">
-    <button type="submit">Log Out</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+    <link rel="stylesheet" href="index.css" type="text/css">
+    <title>My Island</title>
+</head>
+<body>
+    <header>
+        <div class="section_link">
+            <a href="#section1" class="menu_icon text">section1</a>
+            <a href="#section2" class="menu_icon text">section2</a>
+        </div>
+        <div class="menu_bar">
+            <div class="input_wrapper">
+                <input type="text" id="text" name="text" autocomplete="off">
+                <a href="#" class="menu_icon" id="search">
+                    <ion-icon name="search-outline"></ion-icon>
+                </a>
+            </div>
+            <form action="/logout?_method=DELETE" method="POST">
+                <button type="submit" class="menu_icon text">logout</button>
+            </form>
+        </div>
+    </header>
+    <section id="header_section">
+        <div class="logo_title"><%= name %>'s Island</div>
+    </section>
+    <div class="setting">
+        <div href="#" class="setting_button">
+            <i class="fa-solid fa-gear"></i>
+        </div>
+        <li style="--i:0">
+            <a href="/create"><ion-icon name="add-outline"></ion-icon></a>
+        </li>
+        <li style="--i:1">
+            <button id="delete"><ion-icon name="remove-outline"></ion-icon></button>
+        </li>
+        <li style="--i:2">
+            <form action="/edit" method="post">
+                <button id="edit"><ion-icon name="create-outline"></ion-icon></button>
+                <input type="text" hidden id="hidden" name="contentId">
+            </form>
+        </li>
+    </div>
+    <div class="wave" id="wave1"></div>
+    <div class="wave" id="wave2"></div>
+    <div class="wave" id="wave3"></div>
+    <div class="wave" id="wave4"></div>
+    <div class="wave" id="wave5"></div>
+    <div class="contents">
+        <section class="section" id="section1">
+            <div class="sec_title">section1</div>
+            <!--섹션 수정 버튼 자리-->
+            <div class="content_wrap"> 
+                <% contents.forEach(content => { %>
+                    <% if(!content?.title && !content.imgName && content.text) { %>
+                        <% const Url = /(http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/; %>
+                        <% if(Url.test(content.text)) {%> 
+                            <div class="content <%= content.boxSize %> url" id="<%= content._id %>">
+                                <a href="<%= content.text %>" target="_blank"><%= content.text %></a>
+                            </div>
+                        <% } else {%> 
+                            <div class="content <%= content.boxSize %> textonly" id="<%= content._id %>">
+                                <p><%= content.text %></p>
+                            </div>
+                        <% } %> 
+                    <% } else if(content.title && !content.imgName && content.text) { %>
+                        <div class="content <%= content.boxSize %> text" id="<%= content._id %>">
+                            <h3><%= content.title %></h3>
+                            <hr>
+                            <p><%= content.text %></p>
+                        </div>
+                    <% } else if(!content.title && content.imgName && !content.text) { %>
+                        <div class="content <%= content.boxSize %> img" id="<%= content._id %>">
+                            <img src="uploads/<%= content.imgName %>" id="<%= content._id %>">
+                        </div>
+                    <% }else if(content.title && content.imgName && content.text ) { %> 
+                        <div class="content <%= content.boxSize %> all" id="<%= content._id %>">
+                            <div class="text_wrapper">
+                                <h3><%= content.title %> </h3>
+                                <hr>
+                                <p><%= content.text %> </p>
+                            </div>
+                            <img src="uploads/<%= content.imgName %>">
+                        </div>
+                    <% } %> 
+                <% }) %> 
+            </div>
+        </section>
+        <div></div>
+        <section class="section" id="section2">
+            <div class="sec_title">section2</div>
+            <i class="fi fi-rr-pencil"></i>
+        </section>
+    </div>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        let selectedContentsId = [];
+
+        let settingButton = document.querySelector('.setting_button');
+        let settingArea = document.querySelector('.setting');
+        let contents = document.querySelectorAll('.content');
+        let deleteButton = document.querySelector('#delete');
+        let editButton = document.querySelector('#edit');
+        let hiddenInput = document.querySelector('#hidden');
+
+        settingButton.onclick = () => {
+            settingArea.classList.toggle('active');
+        }
+
+        contents.forEach(content => {
+            content.addEventListener('click', e => {
+                content.classList.toggle('active');
+                if(content.classList[3] == 'active') {
+                    selectedContentsId.push(content.id);
+                } else {
+                    for(let i = 0; i < selectedContentsId.length; i++) {
+                        if(selectedContentsId[i] === content.id) {
+                            selectedContentsId.splice(i, 1);
+                        }
+                    }
+                }
+                hiddenInput.value = selectedContentsId[0];
+            });
+        });
+
+        deleteButton.addEventListener('click', async () => {
+            await axios.post("/delete", {
+                "contentsId": selectedContentsId
+            }, {
+                headers: {
+                    'Content-Type': "application/json",
+                }
+            })
+            .then(res => {
+                window.location.replace('/home');
+            })
+            .catch(err => {
+                console.error(err);
+            })
+        })
+
+        // editButton.addEventListener('click', async () => {
+        //     await axios.get("/edit", {
+        //         "contentsId": selectedContentsId
+        //     }, {
+        //         headers: {
+        //             'Content-Type': "application/json",
+        //         }
+        //     })
+        //     .then(res => {
+        //         console.log(res);
+        //         window.location.replace('/edit');
+        //     })
+        //     .catch(err => {
+        //         console.error(err);
+        //     })
+        // })
+    </script>
+</body>
+</html>
