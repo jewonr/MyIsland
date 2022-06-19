@@ -12,7 +12,7 @@
     <form action="/update" method="POST" enctype="multipart/form-data">
         <input type="text" hidden name="contentId" value=<%= content._id %>>
         <input class="form-control" type="text" name="title" placeholder="제목을 입력해주세요" aria-label="default input example" value="<%= content.title %>">
-        <div class="wrapper">
+        <div class="option_wrapper">
             <select class="form-select size_select" aria-label="Default select example" name="size">
                 <option value="s">small</option>
                 <option value="m">medium</option>
@@ -21,10 +21,10 @@
             <input class="form-control" type="file" id="formFile" name="img" accept="img/*" >
         </div>
         <div class="form-floating">
-            <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea" name="text" ><%= content.text %></textarea>
+            <textarea class="form-control" placeholder="Leave a comment here" id="floatingTextarea" name="text"><%= content.text %></textarea>
             <label for="floatingTextarea">내용을 입력해주세요</label>
         </div>
-        <div>
+        <div class="button_wrapper">
             <button type="submit" class="btn btn-outline-primary">submit</button>
             <a href="/home" class="btn btn-outline-primary">cancel</a>
         </div>

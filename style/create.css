@@ -17,3 +17,24 @@ body {
     align-items: center;
 }
 
+form {
+    position: relative;
+    width: 800px;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 20px;
+}
+
+.wrapper {
+    display: flex;
+}
+
+#floatingTextarea {
+    width: 100%;
+    height: 300px;
+    resize: none !important;
+} 
+
+

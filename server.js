@@ -28,7 +28,6 @@ const upload = multer({
             const timestamp = new Date().getTime().valueOf();	
             const filename = path.basename(file.originalname, ext) + timestamp + ext;
             cb(null, filename);
-            // cb(null, file.originalname);
         }
     }),
 })
@@ -106,8 +105,6 @@ app.get('/home', checkAuthenticated, async (req, res) => {
         items.push(content);
     });
 
-    console.log(items.length);
-
     res.render('index.ejs', { 
         name: req.user.name,
         contents: items
@@ -163,18 +160,13 @@ app.post('/create', upload.single('img'), async (req, res) => {
         imgName = req.file.filename;
     } 
 
-    console.log(req.file);
-
-    // if(!req.body.title && !req.body.text && !req.body.imgName) {
-    //     res.redirect('/create');
-    // }
-
     const content = new Content({
         title: req.body.title,
         text: req.body.text,
         imgName: imgName,
         boxSize: req.body.size,
-        creater: req.user.id
+        creater: req.user.id,
+        section: req.body.sec
     });
     const newContent = await content.save();
     res.redirect('/home');
@@ -210,7 +202,7 @@ app.post('/delete', async (req, res) => {
         Content.deleteOne({ _id: id });
     });
 
-    res.send();
+    // res.?
 })
 
 app.listen(3000, () => {

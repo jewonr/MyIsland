@@ -26,6 +26,11 @@ const ContentSchema = new mongoose.Schema({
         type: String,
         required: true,
         ref: 'User' 
+    },
+
+    section: {
+        type: String,
+        required: true
     }
 });
 
