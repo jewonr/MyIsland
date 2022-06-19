@@ -191,7 +191,8 @@ app.post('/update', upload.single('img'), async (req, res) => {
         text: req.body.text,
         imgName: imgName,
         boxSize: req.body.size,
-        creater: req.user.id
+        creater: req.user.id,
+        section: req.body.sec
     });
 
     res.redirect('/home');

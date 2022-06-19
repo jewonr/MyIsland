@@ -14,9 +14,28 @@
         <input class="form-control" type="text" name="title" placeholder="제목을 입력해주세요" aria-label="default input example" value="<%= content.title %>">
         <div class="option_wrapper">
             <select class="form-select size_select" aria-label="Default select example" name="size">
-                <option value="s">small</option>
-                <option value="m">medium</option>
-                <option value="l">large</option>
+                <% if(content.boxSize === "s") { %> 
+                    <option value="s" selected>small</option>
+                    <option value="m">medium</option>
+                    <option value="l">large</option>
+                <% } else if(content.boxSize === "m") { %> 
+                    <option value="s">small</option>
+                    <option value="m" selected>medium</option>
+                    <option value="l">large</option>
+                <% } else { %>
+                    <option value="s">small</option>
+                    <option value="m">medium</option>
+                    <option value="l" selected>large</option>
+                <% } %> 
+            </select>
+            <select class="form-select size_select" aria-label="Default select example" name="sec">
+                <% if(content.section === "section1") { %> 
+                    <option value="section1" selected>section1</option>
+                    <option value="section2">section2</option>
+                <% } else { %> 
+                    <option value="section1">section1</option>
+                    <option value="section2" selected>section2</option>
+                <% } %> 
             </select>
             <input class="form-control" type="file" id="formFile" name="img" accept="img/*" >
         </div>
