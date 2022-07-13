@@ -173,20 +173,13 @@
         });
 
         deleteButton.addEventListener('click', async () => {
-            await axios.post("/delete", {
-                "contentsId": selectedContentsId
-            }, {
+            window.location.href=window.location.href
+            await axios.delete(`/delete/${selectedContentsId[0]}`, {
                 headers: {
                     'Content-Type': "application/json",
                 }
-            })
-            .then(res => {
-                window.location.replace('/home');
-            })
-            .catch(err => {
-                console.error(err);
-            })
-        })
+            });
+        });
     </script>
 </body>
 </html>

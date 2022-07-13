@@ -13,7 +13,6 @@ const session = require('express-session');
 const methodOverride = require('method-override');
 const mongoose = require('mongoose');
 const LocalStrategy = require('passport-local').Strategy;
-const axios = require('axios').default;
 
 const User = require('./user');
 const Content = require('./content');
@@ -198,13 +197,10 @@ app.post('/update', upload.single('img'), async (req, res) => {
     res.redirect('/home');
 });
 
-app.post('/delete', async (req, res) => {
-    (await req.body.contentsId).forEach(id => {
-        Content.deleteOne({ _id: id });
-    });
-
-    // res.?
-})
+app.delete('/delete/:id', async (req, res) => {
+    console.log(req.params.id);
+    await Content.findByIdAndDelete(req.params.id);
+});
 
 app.listen(3000, () => {
     console.log("Listening on port 3000");
