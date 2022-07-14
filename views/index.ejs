@@ -82,7 +82,7 @@
                         <div class="content <%= content.boxSize %> img" id="<%= content._id %>">
                             <img src="uploads/<%= content.imgName %>" id="<%= content._id %>">
                         </div>
-                    <% }else if(content.title && content.imgName && content.text ) { %> 
+                    <% } else if(content.title && content.imgName && content.text ) { %> 
                         <div class="content <%= content.boxSize %> all" id="<%= content._id %>">
                             <div class="text_wrapper">
                                 <h3><%= content.title %> </h3>
@@ -90,6 +90,12 @@
                                 <p><%= content.text %> </p>
                             </div>
                             <img src="uploads/<%= content.imgName %>">
+                        </div>
+                    <% } else if(!content.title && content.imgName && content.text) { %> 
+                        <div class="content <% content.boxSize %> imgText" id="<% content._id %>">
+                            <img src="uploads/<% content.imgName %>">
+                            <hr>
+                            <p><% content.text %></p>
                         </div>
                     <% } %> 
                 <% }) %> 

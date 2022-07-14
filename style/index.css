@@ -436,3 +436,22 @@ header {
     margin-left: 10px;
 }
 
+.content.s.imgText img, .content.m.imgText img, .content.l.imgText img {
+    object-fit: cover;
+    border-radius: 20px;
+    width: 100%;
+    height: 80%;
+    margin-left: 10px;
+}
+
+.content.s.imgText p, .content.m.imgText p, .content.l.imgText p {
+    font-size: 20px;
+    font-weight: 400;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+} 
+
+
+
